@@ -23,19 +23,31 @@ texts = []
 for _, r in df.iterrows():
     date_str = r["date_str"]
     description = r["text"]
-    try:
-        d = datetime.strptime(date_str.strip() + " 2021", "%B %d %Y")
-        dates.append(d)
-        dows.append(d.strftime("%A"))
-        texts.append(description)
-    except:
-        continue
+    if "-" in date_str:  
+        try:
+            start_str, end_day = date_str.replace("–", "-").split("-")
+            start_date = datetime.strptime(start_str.strip() + " 2021", "%B %d %Y")
+            end_date = start_date.replace(day=int(end_day.strip()))
 
-calendar_df = pd.DataFrame({
-    "dow": dows,
-    "text": texts
-}, index=pd.to_datetime(dates))
+            for n in range((end_date - start_date).days + 1):
+                d = start_date + timedelta(days=n)
+                dates.append(d)
+                dows.append(d.strftime("%A"))
+                texts.append(description)
+        except:
+            continue
+    else:
+        # Handle single dates
+        try:
+            d = datetime.strptime(date_str.strip() + " 2021", "%B %d %Y")
+            dates.append(d)
+            dows.append(d.strftime("%A"))
+            texts.append(description)
+        except:
+            continue
 
+
+calendar_df = pd.DataFrame({ "dow": dows,"text": texts}, index=pd.to_datetime(dates))
 # Step 8. Sort by date and preview
 calendar_df = calendar_df.sort_index()
 calendar_df.head(10)
