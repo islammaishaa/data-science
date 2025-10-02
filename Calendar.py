@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
-
+#get the link
 url = "https://www.ccny.cuny.edu/registrar/fall"
 response = requests.get(url)
 
@@ -14,16 +14,17 @@ for row in content.find_all("tr"):
     cells = [c.get_text(" ", strip=True) for c in row.find_all("td")]
     if len(cells) == 3:   # only rows with 3 columns
         rows.append(cells)
-     
+#set up frame     
 df = pd.DataFrame(rows, columns=["date_str", "dow", "text"])
 dates = []
 dows = []
 texts = []
 
+#fill in the frame
 for _, r in df.iterrows():
     date_str = r["date_str"]
     description = r["text"]
-    if "-" in date_str:  
+    if "-" in date_str:   #for multiple days
         try:
             start_str, end_day = date_str.replace("–", "-").split("-")
             start_date = datetime.strptime(start_str.strip() + " 2021", "%B %d %Y")
@@ -36,8 +37,7 @@ for _, r in df.iterrows():
                 texts.append(description)
         except:
             continue
-    else:
-        # Handle single dates
+    else: #single days
         try:
             d = datetime.strptime(date_str.strip() + " 2021", "%B %d %Y")
             dates.append(d)
